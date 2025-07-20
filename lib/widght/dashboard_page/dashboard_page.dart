@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import '../../controller/home_controller/home_controller.dart';
 import '../../controller/side_bar_controller/side_bar_controller.dart';
 import '../details_lounge/details_launge.dart';
+import '../notification_page/notification_page.dart';
 import '../payment/payment_page.dart';
+import '../profile_owner_page/profile_owner_page.dart'; // ✅ مهم
 import '../side_widght/add_car_request_page.dart';
 import '../side_widght/add_hall_request_page.dart';
 import '../side_widght/dashboard1_page.dart';
@@ -34,14 +36,14 @@ class DashboardPage extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // حقل البحث مثلاً
+                      // حقل البحث
                       Container(
                         width: 400,
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         child: TextField(
                           decoration: InputDecoration(
                             hintText: 'Search...',
-                            prefixIcon: Icon(Icons.search),
+                            prefixIcon: const Icon(Icons.search),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
                               borderSide: BorderSide.none,
@@ -51,34 +53,32 @@ class DashboardPage extends StatelessWidget {
                           ),
                         ),
                       ),
-
-                      // أيقونات واسم المستخدم
                       Row(
                         children: [
-                          IconButton(icon: Icon(Icons.language_outlined), onPressed: () {
-
+                          IconButton(icon: const Icon(Icons.language_outlined), onPressed: () {}),
+                          IconButton(icon: const Icon(Icons.dark_mode_outlined), onPressed: () {
+                            Get.to(() => PaymentsPage());
                           }),
-                          IconButton(icon: Icon(Icons.dark_mode_outlined), onPressed: () {
-                            Get.to(PaymentsPage());
+                          IconButton(icon: const Icon(Icons.notifications_none_outlined), onPressed: () {
+                            Get.to(() => NotificationPage());
                           }),
-                          IconButton(icon: Icon(Icons.notifications_none_outlined), onPressed: () {}),
-                          SizedBox(width: 20),
-                          // CircleAvatar(backgroundImage: AssetImage('')),
-                          SizedBox(width: 10),
-                          Text("Ahmad Omar\nAdmin", textAlign: TextAlign.right),
-                          SizedBox(width: 20),
+                          const SizedBox(width: 20),
+                          const Text("Ahmad Omar\nAdmin", textAlign: TextAlign.right),
+                          const SizedBox(width: 20),
                         ],
                       ),
                     ],
                   ),
                 ),
+
+                // هنا يتم عرض المحتوى المتغير حسب الحالة
                 Expanded(
                   child: Obx(() {
-                    if (homeController.selectedHallId.value != null) {
-                      // عرض تفاصيل القاعة مع ظهور القائمة الجانبية والتاب بار
+                    if (homeController.selectedOwnerId.value != null) {
+                      return ProfileOwnerPage(userId: homeController.selectedOwnerId.value!);
+                    } else if (homeController.selectedHallId.value != null) {
                       return HallDetailsWidget(hallId: homeController.selectedHallId.value!);
                     } else {
-                      // عرض المحتوى حسب القائمة الجانبية
                       return _buildContentForIndex(sidebarController.selectedIndex.value);
                     }
                   }),
@@ -107,7 +107,7 @@ class DashboardPage extends StatelessWidget {
               style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(height: 20,),
+          const SizedBox(height: 20),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -136,7 +136,7 @@ class DashboardPage extends StatelessWidget {
       return InkWell(
         onTap: () {
           sidebarController.selectedIndex.value = index;
-          homeController.clearSelection(); // إلغاء اختيار القاعة عند تغيير الصفحة
+          homeController.clearSelection(); // يلغي اختيار القاعة أو الأونر عند تغيير الصفحة
         },
         child: Container(
           width: 220,
@@ -160,7 +160,7 @@ class DashboardPage extends StatelessWidget {
       case 1:
         return Dashboard2Page();
       case 2:
-        return HallManagementPage(); // في HallManagementPage يجب تفعيل اختيار القاعة
+        return HallManagementPage();
       case 3:
         return AddHallRequestsPage();
       case 4:

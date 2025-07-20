@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controller/complaints_controller/complaints_controller.dart';
 import '../../controller/hall_controller/hall_details_controller.dart';
 import '../../controller/hall_controller/hall_accpte_controller.dart';
+import '../../controller/feedback_controller/feedback_controller.dart';
 import '../../main.dart';
 import '../profile_owner_page/profile_owner_page.dart';
 
@@ -16,18 +18,30 @@ class HallDetailsWidget extends StatefulWidget {
 
 class _HallDetailsWidgetState extends State<HallDetailsWidget> {
   late final HallsDetailsController controller;
+  late final FeedbackController feedbackController;
+  late final ComplaintsController complaintsController;
 
   @override
   void initState() {
     super.initState();
 
-    // حذف Controller إذا كان مسجل مسبقًا
     if (Get.isRegistered<HallsDetailsController>()) {
       Get.delete<HallsDetailsController>();
     }
-
-    // تسجيل Controller جديد مع معرف القاعة
     controller = Get.put(HallsDetailsController(widget.hallId));
+
+    if (Get.isRegistered<FeedbackController>()) {
+      Get.delete<FeedbackController>();
+    }
+    feedbackController = Get.put(FeedbackController());
+    feedbackController.fetchReviews(widget.hallId);
+
+    if (Get.isRegistered<ComplaintsController>()) {
+      Get.delete<ComplaintsController>();
+    }
+    complaintsController = Get.put(ComplaintsController(widget.hallId));
+    complaintsController.fetchComplaints();
+
   }
 
   @override
@@ -43,7 +57,6 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
         return const Center(child: Text("❌ لم يتم العثور على تفاصيل القاعة."));
       }
 
-      // التحقق من صحة رابط الصورة الرئيسية
       final imageUrl = (hall.hallImage != null &&
               hall.hallImage != 'null' &&
               !hall.hallImage!.contains('/null'))
@@ -51,8 +64,6 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
               ? hall.hallImage!
               : '$baseUrl1/${hall.hallImage}'
           : null;
-
-      print('Image URL: $imageUrl');
 
       return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -100,64 +111,46 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    // const SizedBox(height: 12), // مسافة بين النص والزر
-                    //
-                    // // زر الاشتراك الأخضر
-                    // ElevatedButton(
-                    //   onPressed: () {
-                    //     // هنا تضيف كود الاشتراك أو أي دالة
-                    //   },
-                    //   style: ElevatedButton.styleFrom(
-                    //     backgroundColor: Colors.green, // لون الخلفية أخضر
-                    //     padding: const EdgeInsets.symmetric(
-                    //         horizontal: 24, vertical: 12),
-                    //     shape: RoundedRectangleBorder(
-                    //       borderRadius: BorderRadius.circular(8),
-                    //     ),
-                    //   ),
-                    //   child: const Text(
-                    //     'Subscribe',
-                    //     style: TextStyle(fontSize: 18, color: Colors.white),
-                    //   ),
-                    // ),
-
-                    const SizedBox(height: 12), // مسافة بين الزر والنجوم
-
-                    // صف النجوم (5 نجوم)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(5, (index) {
-                        return const Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 28,
-                        );
-                      }),
-                    ),
+                    const SizedBox(height: 12),
+                    Obx(() {
+                      final avg =
+                          feedbackController.feedback.value?.averageRating ??
+                              0.0;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(5, (index) {
+                          return Icon(
+                            index < avg.round()
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                            size: 28,
+                          );
+                        }),
+                      );
+                    }),
                   ],
                 ),
                 const Spacer(),
                 GestureDetector(
                   onTap: () {
                     if (hall.owner?.id != null) {
-                      Get.find<HallsController>().selectedOwnerId.value =
-                          hall.owner!.id;
+                      Get.find<HallsController>().selectedOwnerId.value = hall.owner!.id;
                     } else {
                       Get.snackbar('خطأ', 'معرّف المالك غير موجود');
                     }
                   },
                   child: CircleAvatar(
                     radius: 30,
-                    backgroundImage: (hall.owner?.photo != null &&
-                            hall.owner!.photo!.isNotEmpty)
-                        ? NetworkImage(hall.owner!.photo!)
-                        : const AssetImage('assets/image/hall4.png')
-                            as ImageProvider,
+                    backgroundImage: (hall.owner?.photo != null && hall.owner!.photo!.isNotEmpty)
+                        ? NetworkImage('$baseUrl1/${hall.owner!.photo!}')
+                        : const AssetImage('assets/image/hall4.png') as ImageProvider,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
+
             Table(
               border: const TableBorder(
                 top: BorderSide(color: Colors.black),
@@ -209,6 +202,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
               ],
             ),
             const SizedBox(height: 35),
+
             Container(
               color: Colors.grey.shade200,
               width: double.infinity,
@@ -244,12 +238,8 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                       separatorBuilder: (context, index) =>
                           const SizedBox(width: 8),
                       itemBuilder: (context, index) {
-                        final imagePath =
-                            hall.images![index].imagePath; // ✅ فقط imagePath
-                        final imageFullUrl =
-                            '$baseUrl1/$imagePath'; // ✅ تأكد من هذا
-
-                        print("📸 صورة رقم ${index + 1}: $imageFullUrl");
+                        final imagePath = hall.images![index].imagePath;
+                        final imageFullUrl = '$baseUrl1/$imagePath';
 
                         return ClipRRect(
                           borderRadius: BorderRadius.circular(8),
@@ -273,70 +263,195 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                     ),
             ),
             const SizedBox(height: 35),
+
             Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.37,
-                      height: MediaQuery.of(context).size.height * 0.07,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        color: Colors.grey.shade200,
+                // الشكاوى
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.35,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    color: Colors.grey.shade200,
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(left: 10.0),
+                        child: Text('Complaints',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
-                      child: Row(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 10.0),
-                            child: Text('Complaints'),
+                      const SizedBox(height: 8),
+                      Obx(() {
+                        if (complaintsController.isLoading.value) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        if (complaintsController.complaints.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Text("لا توجد شكاوى حالياً."),
+                          );
+                        }
+
+                        return SizedBox(
+                          height: 300,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: complaintsController.complaints.length,
+                            itemBuilder: (context, index) {
+                              final complaint = complaintsController.complaints[index];
+                              final user = complaint.user;
+
+                              final userPhoto = (user?.photo != null && user!.photo!.isNotEmpty)
+                                  ? '$baseUrl1/${user.photo}'
+                                  : null;
+
+                              return Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border(
+                                    top: BorderSide(color: Colors.black, width: 0.5),
+                                    bottom: BorderSide(color: Colors.black, width: 0.25),
+                                  ),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 24,
+                                      backgroundImage: userPhoto != null
+                                          ? NetworkImage(userPhoto)
+                                          : const AssetImage('assets/image/hall4.png') as ImageProvider,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            user?.name ?? "مستخدم مجهول",
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            complaint.complaint ?? '',
+                                            style: const TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10.0),
-                            child: TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                'View',
-                                style: TextStyle(color: Colors.blue.shade900),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                        );
+                      }),
+                    ],
+                  ),
                 ),
-                const Spacer(),
-                Column(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.37,
-                      height: MediaQuery.of(context).size.height * 0.07,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        color: Colors.grey.shade200,
-                      ),
-                      child: Row(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 10.0),
-                            child: Text('Feedback'),
-                          ),
-                          const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10.0),
-                            child: TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                'View',
-                                style: TextStyle(color: Colors.blue.shade900),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+
+                const SizedBox(width: 20),
+
+                // قسم التعليقات (Feedback)
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black),
+                      color: Colors.grey.shade200,
                     ),
-                  ],
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(left: 10.0),
+                          child: Text('Feedback',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(height: 8),
+                        Obx(() {
+                          if (feedbackController.isLoading.value) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+
+                          if (feedbackController
+                                  .feedback.value?.reviews?.isEmpty ??
+                              true) {
+                            return const Padding(
+                              padding: EdgeInsets.all(8),
+                              child: Text("لا توجد تعليقات حالياً."),
+                            );
+                          }
+
+                          return SizedBox(
+                            height: 300,
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: feedbackController.feedback.value!.reviews!.length,
+                              itemBuilder: (context, index) {
+                                final review = feedbackController.feedback.value!.reviews![index];
+                                final user = review.user;
+                                final userPhoto = (user?.photo != null && user!.photo!.isNotEmpty)
+                                    ? '$baseUrl1/${user.photo}'
+                                    : null;
+
+                                return Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border(
+                                      top: BorderSide(color: Colors.black, width: 0.5),
+                                      bottom: BorderSide(color: Colors.black ,width: 0.25),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 24,
+                                        backgroundImage: userPhoto != null
+                                            ? NetworkImage(userPhoto)
+                                            : const AssetImage('assets/image/hall4.png') as ImageProvider,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              user?.name ?? "مستخدم مجهول",
+                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              review.comment ?? '',
+                                              style: const TextStyle(fontSize: 14),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -348,25 +463,23 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
 
   Widget _buildHeaderCell(String text, {Color? backgroundColor}) {
     return Container(
-      padding: const EdgeInsets.all(12),
-      color: backgroundColor ?? Colors.grey.shade300,
+      color: backgroundColor ?? Colors.transparent,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       child: Text(
         text,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-          color: Colors.black,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
       ),
     );
   }
 
   Widget _buildValueCell(String text) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 14),
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.normal),
       ),
     );
   }

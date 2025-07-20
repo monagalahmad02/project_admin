@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:project3admin/widght/auth_page/animation_page.dart';
 import 'package:project3admin/widght/auth_page/login_page.dart';
 import 'package:project3admin/widght/dashboard_page/dashboard_page.dart';
 import 'controller/home_controller/home_controller.dart';
@@ -35,8 +36,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home:  isLoggedIn ? DashboardPage() : LoginPage(),    //   isLoggedIn ? DashboardPage() :
+      home:isLoggedIn ? DashboardPage() :const AnimatedIntroPage(),    //   isLoggedIn ? DashboardPage() :
       debugShowCheckedModeBanner: false,
     );
   }
 }
+//isLoggedIn ? DashboardPage() :

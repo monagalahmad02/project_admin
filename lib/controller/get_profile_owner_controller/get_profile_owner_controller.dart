@@ -52,7 +52,6 @@ class ProfileOwnerController extends GetxController {
         final jsonData = json.decode(response.body);
         print('تم فك تشفير JSON: $jsonData');
 
-        // هنا نتأكد أن jsonData هو List ثم نأخذ أول عنصر منه
         if (jsonData is List && jsonData.isNotEmpty) {
           owner.value = OwnerModel.fromJson(jsonData[0]);
         } else {

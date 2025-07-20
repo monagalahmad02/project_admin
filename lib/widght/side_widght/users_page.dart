@@ -117,13 +117,13 @@ class UsersPage extends StatelessWidget {
                           ),
                           child: TextButton(
                             onPressed: () async {
-                            if (controller.selectedHalls.isNotEmpty) {
-                              final ids = controller.selectedHalls.map((id) => int.parse(id)).toList();
-                              await blockController.blockUsers(ids);
-                              controller.clearSelection(); // (اختياري) لمسح التحديد
-                            }
-                          },
-
+                              if (controller.selectedHalls.isNotEmpty) {
+                                final ids = controller.selectedHalls.map((id) => int.parse(id)).toList();
+                                await blockController.blockUsers(ids);      // تنفيذ الحظر
+                                await controller.fetchUsers();              // إعادة تحميل البيانات
+                                controller.clearSelection();                // مسح التحديد
+                              }
+                            },
                             child: const Text('Block', style: TextStyle(color: Colors.white)),
                           ),
                         ),
@@ -151,10 +151,11 @@ class UsersPage extends StatelessWidget {
       width: tableWidth,
       child: Column(
         children: [
+          // رأس الجدول
           Container(
             width: tableWidth,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 1), // ✅ الحواف الخارجية
+              border: Border.all(color: Colors.black, width: 1),
               color: const Color.fromRGBO(75, 114, 210, 0.5),
             ),
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
@@ -174,37 +175,40 @@ class UsersPage extends StatelessWidget {
                 }),
                 const Expanded(
                     flex: 3,
-                    child: Center(
-                        child: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)))),
+                    child: Center(child: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)))),
                 const Expanded(
                     flex: 3,
-                    child: Center(
-                        child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold)))),
+                    child: Center(child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold)))),
                 const Expanded(
                     flex: 2,
-                    child: Center(
-                        child: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold)))),
+                    child: Center(child: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold)))),
                 const Expanded(
                     flex: 2,
-                    child: Center(
-                        child: Text('Role', style: TextStyle(fontWeight: FontWeight.bold)))),
+                    child: Center(child: Text('Role', style: TextStyle(fontWeight: FontWeight.bold)))),
               ],
             ),
           ),
-          SizedBox(
-            width: tableWidth,
+
+          // بيانات المستخدمين
+          Expanded(
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: halls.length,
               itemBuilder: (context, index) {
                 final hall = halls[index];
                 final hallIdStr = hall['id'].toString();
+                final isBlocked = hall['is_blocked'] == 1; // ✅ تحقق إذا المستخدم محظور
 
                 return Obx(() {
                   final isSelected = controller.selectedHalls.contains(hallIdStr);
+
                   return Container(
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.blue.shade100 : Colors.transparent,
+                      color: isBlocked
+                          ? Colors.red.shade100 // 🔴 خلفية للمحظور
+                          : isSelected
+                          ? Colors.blue.shade100 // 🔵 خلفية للمحدد
+                          : Colors.transparent,
                     ),
                     child: Row(
                       children: [
@@ -221,23 +225,26 @@ class UsersPage extends StatelessWidget {
                         Expanded(
                           flex: 3,
                           child: Center(
-                            child: Text(
-                              hall['name'],
-                              style: const TextStyle(color: Colors.black),
-                            ),
+                            child: Text(hall['name'] ?? ''),
                           ),
                         ),
                         Expanded(
                           flex: 3,
-                          child: Center(child: Text(hall['email'] ?? '')),
+                          child: Center(
+                            child: Text(hall['email'] ?? ''),
+                          ),
                         ),
                         Expanded(
                           flex: 2,
-                          child: Center(child: Text(hall['number'] ?? '')),
+                          child: Center(
+                            child: Text(hall['number'] ?? ''),
+                          ),
                         ),
                         Expanded(
                           flex: 2,
-                          child: Center(child: Text(hall['role'] ?? '')),
+                          child: Center(
+                            child: Text(hall['role'] ?? ''),
+                          ),
                         ),
                       ],
                     ),

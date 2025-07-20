@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project3admin/main.dart';
 
 import '../../controller/user_controller/get_user_blocked_controller.dart';
 import '../../controller/user_controller/unblock_user_controller.dart';
-
 
 class SettingsPage extends StatelessWidget {
   SettingsPage({Key? key}) : super(key: key);
 
   final BlockedUsersController blockedUsersController = Get.put(BlockedUsersController());
   final UnblockUserController unblockUserController = Get.put(UnblockUserController());
+  final RxInt currentlyUnblocking = (-1).obs; // ⬅️ لتتبع الزر المضغوط حاليًا
 
   @override
   Widget build(BuildContext context) {
-    blockedUsersController.fetchBlockedUsers();
+    // ✅ استدعِها مرة واحدة فقط بعد بناء الصفحة
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      blockedUsersController.fetchBlockedUsers();
+    });
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Blocked Users'),
+        title: const Text('Blocked Users'),
       ),
       body: Obx(() {
         if (blockedUsersController.isLoading.value) {
@@ -25,7 +29,8 @@ class SettingsPage extends StatelessWidget {
         }
 
         if (blockedUsersController.blockedUsers.isEmpty) {
-          return const Center(child: Text('No blocked users found', style: TextStyle(fontSize: 18)));
+          return const Center(
+              child: Text('No blocked users found', style: TextStyle(fontSize: 18)));
         }
 
         return ListView.separated(
@@ -34,13 +39,14 @@ class SettingsPage extends StatelessWidget {
           separatorBuilder: (context, index) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final user = blockedUsersController.blockedUsers[index];
+
             return Card(
               elevation: 2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: user.photo != null
-                      ? NetworkImage(user.photo!)
+                  backgroundImage: user.photo != null && user.photo!.isNotEmpty
+                      ? NetworkImage('$baseUrl1/${user.photo!}')
                       : const AssetImage('assets/image/hall4.png') as ImageProvider,
                   radius: 25,
                 ),
@@ -54,26 +60,34 @@ class SettingsPage extends StatelessWidget {
                     Text('Role: ${user.role}'),
                   ],
                 ),
-                trailing: ElevatedButton(
-                  onPressed: () async {
-                    bool success = await unblockUserController.unblockUser(user.id);
-                    if (success) {
-                      // إعادة تحميل قائمة المستخدمين المحظورين بعد فك الحظر
-                      await blockedUsersController.fetchBlockedUsers();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  child: unblockUserController.isLoading.value
-                      ? const SizedBox(
-                    height: 16,
-                    width: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                      : const Text('Unblock', style: TextStyle(color: Colors.white)),
-                ),
+                trailing: Obx(() {
+                  final isThisLoading = currentlyUnblocking.value == user.id;
+
+                  return ElevatedButton(
+                    onPressed: () async {
+                      currentlyUnblocking.value = user.id;
+                      bool success = await unblockUserController.unblockUser(user.id);
+                      if (success) {
+                        await blockedUsersController.fetchBlockedUsers();
+                      }
+                      currentlyUnblocking.value = -1;
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    child: isThisLoading
+                        ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                        : const Text('Unblock', style: TextStyle(color: Colors.white)),
+                  );
+                }),
               ),
             );
           },

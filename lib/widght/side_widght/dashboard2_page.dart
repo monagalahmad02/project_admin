@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-import '../../controller/dashboard_controller/dashboard2_controller.dart'; // تأكد من المسار
+import '../../controller/dashboard_controller/dashboard2_controller.dart';
 
 class Dashboard2Page extends StatelessWidget {
   Dashboard2Page({super.key});
@@ -30,8 +29,10 @@ class Dashboard2Page extends StatelessWidget {
               children: [
                 _buildSectionTitle('Welcome Ahmad!'),
                 const SizedBox(height: 35),
+
                 _buildSectionTitle('Lounges', isBold: false),
                 const SizedBox(height: 20),
+
                 Row(
                   children: [
                     Expanded(
@@ -39,40 +40,62 @@ class Dashboard2Page extends StatelessWidget {
                         Icons.meeting_room,
                         "Number of request to add hall",
                         data.requestsLast30,
-                        "${data.requestsChange.toStringAsFixed(1)}%",
+                        data.requestsChange,
                       ),
                     ),
                     const SizedBox(width: 30),
                     Expanded(
                       child: _buildStatCard(
-                        Icons.meeting_room,
+                        Icons.verified,
                         "Number of accepted Halls",
                         data.acceptedLast30,
-                        "${data.acceptedChange.toStringAsFixed(1)}%",
+                        data.acceptedChange,
                       ),
                     ),
                     const SizedBox(width: 30),
                     Expanded(
                       child: _buildStatCard(
-                        Icons.meeting_room,
+                        Icons.local_activity,
                         "Number of currently Active Halls",
                         data.activeTotal,
-                        "${data.activeChange.toStringAsFixed(1)}%",
+                        data.activeChange,
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 40),
                 _buildSectionTitle('Car reservation Office', isBold: false),
                 const SizedBox(height: 20),
+
                 Row(
                   children: [
-                    // ثابت حالياً - يمكنك ربطه لاحقاً ببيانات جديدة
-                    Expanded(child: _buildStatCard(Icons.directions_car, "Number of request to add an office", 30, "+3%")),
+                    Expanded(
+                      child: _buildStatCard(
+                        Icons.directions_car,
+                        "Number of request to add an office",
+                        30,
+                        3, // نسبة ثابتة مثالًا
+                      ),
+                    ),
                     const SizedBox(width: 30),
-                    Expanded(child: _buildStatCard(Icons.verified, "Number of accepted Offices", 22, "0%")),
+                    Expanded(
+                      child: _buildStatCard(
+                        Icons.verified,
+                        "Number of accepted Offices",
+                        22,
+                        0,
+                      ),
+                    ),
                     const SizedBox(width: 30),
-                    Expanded(child: _buildStatCard(Icons.local_activity, "Number of currently Active Offices", 18, "-2%")),
+                    Expanded(
+                      child: _buildStatCard(
+                        Icons.local_activity,
+                        "Number of currently Active Offices",
+                        18,
+                        -2,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -94,11 +117,13 @@ class Dashboard2Page extends StatelessWidget {
   }
 
   Widget _buildStatCard(
-      IconData icon, String label, int count, String percentChange) {
-    // استخراج القيمة العددية من النسبة
-    final double percentValue =
-        double.tryParse(percentChange.replaceAll('%', '').replaceAll('+', '')) ?? 0;
-    final bool isPositive = percentValue > 0;
+      IconData icon,
+      String label,
+      int count,
+      double percent, // القيمة جاهزة من الـ API
+      ) {
+    final bool isPositive = percent >= 0;
+    final String percentChange = "${percent.toStringAsFixed(1)}%";
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -123,16 +148,16 @@ class Dashboard2Page extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text('$count',
-              style:
-              const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(
+            '$count',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -147,7 +172,9 @@ class Dashboard2Page extends StatelessWidget {
                 child: Text(
                   percentChange,
                   style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w500),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(width: 4),

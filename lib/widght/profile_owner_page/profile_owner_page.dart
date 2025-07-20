@@ -2,17 +2,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 import '../../controller/get_profile_owner_controller/get_profile_owner_controller.dart';
+import '../../controller/home_controller/home_controller.dart';
+import '../../main.dart';
 
 class ProfileOwnerPage extends StatelessWidget {
   final int userId;
 
-  const ProfileOwnerPage({Key? key, required this.userId}) : super(key: key);
+  const ProfileOwnerPage({
+    Key? key,
+    required this.userId,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final ProfileOwnerController controller = Get.put(ProfileOwnerController(userId));
+    final HomeController homeController = Get.find<HomeController>();
+
+    // هذا الشرط يحدد متى يظهر زر الرجوع بناءً على حالة homeController
+    final bool showBackButton = homeController.selectedOwnerId.value != null;
 
     return Scaffold(
       body: Obx(() {
@@ -30,13 +40,31 @@ class ProfileOwnerPage extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: ListView(
             children: [
-              // عرض صورة المالك أو صورة افتراضية
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: owner.photo != null && owner.photo!.isNotEmpty
-                    ? NetworkImage(owner.photo!)
-                    : const AssetImage('assets/image/hall4.png') as ImageProvider,
+              if (showBackButton)
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios),
+                    onPressed: () {
+                      homeController.selectedOwnerId.value = null;
+                    },
+                  ),
+                ),
+              GestureDetector(
+                onTap: () {
+                },
+                child: CircleAvatar(
+                radius: 60,
+                backgroundImage: (owner?.photo != null &&
+                    owner!.photo!.isNotEmpty)
+                    ? NetworkImage(owner!.photo!.startsWith('http')
+                    ? owner!.photo!
+                    : '$baseUrl1/${owner!.photo!}')
+                    : const AssetImage('assets/image/hall4.png')
+                as ImageProvider,
               ),
+              ),
+
               const SizedBox(height: 20),
               const Text('Full name', style: TextStyle(fontWeight: FontWeight.bold),),
               const SizedBox(height: 10,),
@@ -44,11 +72,10 @@ class ProfileOwnerPage extends StatelessWidget {
                 height: 50,
                 child: TextFormField(
                   initialValue: owner.name ?? 'غير متوفر',
-
                   readOnly: true,
-                  textAlignVertical: TextAlignVertical.center, // توسيط عمودياً
+                  textAlignVertical: TextAlignVertical.center,
                   decoration: InputDecoration(
-                    contentPadding:const EdgeInsets.only(left: 20), // إزالة الهوامش الداخلية لتوسيط كامل
+                    contentPadding:const EdgeInsets.only(left: 20),
                     border: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey.shade700),
                     ),
@@ -78,9 +105,9 @@ class ProfileOwnerPage extends StatelessWidget {
                         child: TextFormField(
                           initialValue: owner.email ?? 'غير متوفر',
                           readOnly: true,
-                          textAlignVertical: TextAlignVertical.center, // توسيط عمودياً
+                          textAlignVertical: TextAlignVertical.center,
                           decoration: InputDecoration(
-                            contentPadding:const EdgeInsets.only(left: 20), // إزالة الهوامش الداخلية لتوسيط كامل
+                            contentPadding:const EdgeInsets.only(left: 20),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey.shade700),
                             ),
@@ -110,9 +137,9 @@ class ProfileOwnerPage extends StatelessWidget {
                         child: TextFormField(
                           initialValue: owner.role ?? 'غير متوفر',
                           readOnly: true,
-                          textAlignVertical: TextAlignVertical.center, // توسيط عمودياً
+                          textAlignVertical: TextAlignVertical.center,
                           decoration: InputDecoration(
-                            contentPadding:const EdgeInsets.only(left: 20), // إزالة الهوامش الداخلية لتوسيط كامل
+                            contentPadding:const EdgeInsets.only(left: 20),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey.shade700),
                             ),
@@ -146,9 +173,9 @@ class ProfileOwnerPage extends StatelessWidget {
                         child: TextFormField(
                           initialValue: owner.location ?? 'غير متوفر',
                           readOnly: true,
-                          textAlignVertical: TextAlignVertical.center, // توسيط عمودياً
+                          textAlignVertical: TextAlignVertical.center,
                           decoration: InputDecoration(
-                            contentPadding:const EdgeInsets.only(left: 20), // إزالة الهوامش الداخلية لتوسيط كامل
+                            contentPadding:const EdgeInsets.only(left: 20),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey.shade700),
                             ),
@@ -178,9 +205,9 @@ class ProfileOwnerPage extends StatelessWidget {
                         child: TextFormField(
                           initialValue: owner.number ?? 'غير متوفر',
                           readOnly: true,
-                          textAlignVertical: TextAlignVertical.center, // توسيط عمودياً
+                          textAlignVertical: TextAlignVertical.center,
                           decoration: InputDecoration(
-                            contentPadding:const EdgeInsets.only(left: 20), // إزالة الهوامش الداخلية لتوسيط كامل
+                            contentPadding:const EdgeInsets.only(left: 20),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey.shade700),
                             ),

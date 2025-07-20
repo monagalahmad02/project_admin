@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/accpte_a_hall_controller/accpte_hall_controller.dart';
+import '../../controller/hall_controller/hall_accpte_controller.dart';
 import '../../controller/hall_controller/hall_pending_controller.dart';
+import '../../controller/home_controller/home_controller.dart';
 import '../../model/hall_pending_model.dart';
 import '../../main.dart';
+import '../profile_owner_page/profile_owner_page.dart';
 
 class HallDetailsRequestPage extends StatelessWidget {
   final HallPending hall;
@@ -20,6 +23,7 @@ class HallDetailsRequestPage extends StatelessWidget {
     final AccepectHallsController hallsController = Get.find<AccepectHallsController>();
     final AcceptAHallController acceptController = Get.find<AcceptAHallController>();
 
+    Get.put(HallsController());
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -93,27 +97,24 @@ class HallDetailsRequestPage extends StatelessWidget {
                     ],
                   ),
                 ),
-
-
-                // GestureDetector(
-                //   onTap: () {
-                //     if (hall.owner?.id != null) {
-                //       Get.find<HallsController>().selectedOwnerId.value =
-                //           hall.owner!.id;
-                //     } else {
-                //       Get.snackbar('خطأ', 'معرّف المالك غير موجود');
-                //     }
-                //   },
-                //   child: CircleAvatar(
-                //     radius: 30,
-                //     backgroundImage: (hall.owner?.photo != null &&
-                //         hall.owner!.photo!.isNotEmpty)
-                //         ? NetworkImage(hall.owner!.photo!)
-                //         : const AssetImage('assets/image/hall4.png')
-                //     as ImageProvider,
-                //   ),
-                // ),
-
+                GestureDetector(
+                  onTap: () {
+                    if (hall.owner?.id != null) {
+                      Get.find<HomeController>().selectedOwnerId.value = hall.owner!.id;
+                    } else {
+                      Get.snackbar('خطأ', 'معرّف المالك غير موجود');
+                    }
+                  },                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundImage: (hall.owner?.photo != null &&
+                        hall.owner!.photo!.isNotEmpty)
+                        ? NetworkImage(hall.owner!.photo!.startsWith('http')
+                        ? hall.owner!.photo!
+                        : '$baseUrl1/${hall.owner!.photo!}')
+                        : const AssetImage('assets/image/hall4.png')
+                    as ImageProvider,
+                  ),
+                ),
               ],
             ),
 

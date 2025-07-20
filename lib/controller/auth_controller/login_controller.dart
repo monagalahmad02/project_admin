@@ -13,10 +13,10 @@ class LoginController extends GetxController {
   final emailController = TextEditingController().obs;
   final passwordController = TextEditingController().obs;
 
+  RxBool passwordVisible = false.obs; // ⬅️ أضف هذا
   RxBool loading = false.obs;
 
   void loginApi() async {
-    loading.value = true;
     final box = GetStorage();
     try {
       final response = await post(
