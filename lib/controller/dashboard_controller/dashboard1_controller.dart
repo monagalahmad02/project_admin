@@ -11,19 +11,22 @@ class Dashboard1Controller extends GetxController {
 
   var isLoading = true.obs;
   var dashboardData = Rxn<DashboardData>();
+  var errorMessage = ''.obs; // لتخزين أي خطأ
 
   @override
   void onInit() {
-    fetchDashboardData();
     super.onInit();
+    fetchDashboardData();
   }
 
   Future<void> fetchDashboardData() async {
     try {
+      isLoading.value = true;
+      errorMessage.value = '';
+
       final token = box.read('token');
       if (token == null) {
-        print("❌ لا يوجد توكن مخزن");
-        isLoading.value = false;
+        errorMessage.value = "❌ لا يوجد توكن مخزن";
         return;
       }
 
@@ -31,7 +34,7 @@ class Dashboard1Controller extends GetxController {
         Uri.parse(baseUrl2),
         headers: {
           'Authorization': 'Bearer $token',
-          'Accept': '*/*',
+          'Accept': 'application/json',
         },
       );
 
@@ -40,13 +43,13 @@ class Dashboard1Controller extends GetxController {
         if (decoded['status'] == 'success') {
           dashboardData.value = DashboardData.fromJson(decoded['data']);
         } else {
-          print("⚠️ status != success");
+          errorMessage.value = "⚠️ API Error: ${decoded['status']}";
         }
       } else {
-        print("⚠️ HTTP Error ${response.statusCode}");
+        errorMessage.value = "⚠️ HTTP Error ${response.statusCode} - ${response.body}";
       }
     } catch (e) {
-      print('❌ Exception: $e');
+      errorMessage.value = '❌ Exception: $e';
     } finally {
       isLoading.value = false;
     }

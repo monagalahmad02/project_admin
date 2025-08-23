@@ -21,7 +21,6 @@ class ProfileOwnerPage extends StatelessWidget {
     final ProfileOwnerController controller = Get.put(ProfileOwnerController(userId));
     final HomeController homeController = Get.find<HomeController>();
 
-    // هذا الشرط يحدد متى يظهر زر الرجوع بناءً على حالة homeController
     final bool showBackButton = homeController.selectedOwnerId.value != null;
 
     return Scaffold(
@@ -101,7 +100,7 @@ class ProfileOwnerPage extends StatelessWidget {
                       const SizedBox(height: 10,),
                       Container(
                         height: 50,
-                        width: MediaQuery.of(context).size.width * 0.37,
+                        width: MediaQuery.of(context).size.width * 0.34,
                         child: TextFormField(
                           initialValue: owner.email ?? 'غير متوفر',
                           readOnly: true,
@@ -133,7 +132,7 @@ class ProfileOwnerPage extends StatelessWidget {
                       const SizedBox(height: 10,),
                       Container(
                         height: 50,
-                        width: MediaQuery.of(context).size.width * 0.37,
+                        width: MediaQuery.of(context).size.width * 0.34,
                         child: TextFormField(
                           initialValue: owner.role ?? 'غير متوفر',
                           readOnly: true,
@@ -169,7 +168,7 @@ class ProfileOwnerPage extends StatelessWidget {
                       const SizedBox(height: 10,),
                       Container(
                         height: 50,
-                        width: MediaQuery.of(context).size.width * 0.37,
+                        width: MediaQuery.of(context).size.width * 0.34,
                         child: TextFormField(
                           initialValue: owner.location ?? 'غير متوفر',
                           readOnly: true,
@@ -201,7 +200,7 @@ class ProfileOwnerPage extends StatelessWidget {
                       const SizedBox(height: 10,),
                       Container(
                         height: 50,
-                        width: MediaQuery.of(context).size.width * 0.37,
+                        width: MediaQuery.of(context).size.width * 0.34,
                         child: TextFormField(
                           initialValue: owner.number ?? 'غير متوفر',
                           readOnly: true,

@@ -7,7 +7,6 @@ import 'package:project3admin/widght/dashboard_page/dashboard_page.dart';
 import 'controller/home_controller/home_controller.dart';
 import 'controller/side_bar_controller/side_bar_controller.dart';
 
-
 const baseUrl = 'http://127.0.0.1:8000/api';
 const baseUrl1 = 'http://127.0.0.1:8000/image';
 
@@ -36,9 +35,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home:isLoggedIn ? DashboardPage() :const AnimatedIntroPage(),    //   isLoggedIn ? DashboardPage() :
+      home: isLoggedIn ? DashboardPage() : const AnimatedIntroPage(),    //   isLoggedIn ? DashboardPage() :
       debugShowCheckedModeBanner: false,
     );
   }
 }
-//isLoggedIn ? DashboardPage() :

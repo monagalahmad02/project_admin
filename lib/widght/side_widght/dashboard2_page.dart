@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controller/dashboard_controller/dashboard2_controller.dart';
+import '../../controller/dashboard_controller/dash_office_controller.dart';
+import '../../controller/dashboard_controller/dash_lounge_controller.dart';
 
 class Dashboard2Page extends StatelessWidget {
   Dashboard2Page({super.key});
 
-  final Dashboard2Controller controller = Get.put(Dashboard2Controller());
+  final DashOfficeController officeController = Get.put(DashOfficeController());
+  final DashLoungeController loungeController = Get.put(DashLoungeController());
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
+    return Scaffold(
+      body: Obx(() {
+        if (officeController.isLoading.value || loungeController.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-      final data = controller.dashboardData.value;
+        if (officeController.errorMessage.isNotEmpty) {
+          return Center(child: Text(officeController.errorMessage.value));
+        }
+        if (loungeController.errorMessage.isNotEmpty) {
+          return Center(child: Text(loungeController.errorMessage.value));
+        }
 
-      if (data == null) {
-        return const Center(child: Text("فشل في تحميل البيانات"));
-      }
+        final officeData = officeController.dashOffice.value;
+        final loungeData = loungeController.dashLounge.value;
 
-      return Scaffold(
-        body: Padding(
+        return Padding(
           padding: const EdgeInsets.all(24.0),
           child: SingleChildScrollView(
             child: Column(
@@ -30,17 +36,19 @@ class Dashboard2Page extends StatelessWidget {
                 _buildSectionTitle('Welcome Ahmad!'),
                 const SizedBox(height: 35),
 
+                // 🔹 Lounges
                 _buildSectionTitle('Lounges', isBold: false),
                 const SizedBox(height: 20),
-
-                Row(
+                loungeData == null
+                    ? const Center(child: Text("فشل في تحميل بيانات الصالات"))
+                    : Row(
                   children: [
                     Expanded(
                       child: _buildStatCard(
                         Icons.meeting_room,
                         "Number of request to add hall",
-                        data.requestsLast30,
-                        data.requestsChange,
+                        loungeData.requestsLast30,
+                        loungeData.requestsChange.toDouble(),
                       ),
                     ),
                     const SizedBox(width: 30),
@@ -48,8 +56,8 @@ class Dashboard2Page extends StatelessWidget {
                       child: _buildStatCard(
                         Icons.verified,
                         "Number of accepted Halls",
-                        data.acceptedLast30,
-                        data.acceptedChange,
+                        loungeData.acceptedLast30,
+                        loungeData.acceptedChange.toDouble(),
                       ),
                     ),
                     const SizedBox(width: 30),
@@ -57,25 +65,28 @@ class Dashboard2Page extends StatelessWidget {
                       child: _buildStatCard(
                         Icons.local_activity,
                         "Number of currently Active Halls",
-                        data.activeTotal,
-                        data.activeChange,
+                        loungeData.activeTotal,
+                        loungeData.activeChange.toDouble(),
                       ),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 40),
+
+                // 🔹 Car reservation Office
                 _buildSectionTitle('Car reservation Office', isBold: false),
                 const SizedBox(height: 20),
-
-                Row(
+                officeData == null
+                    ? const Center(child: Text("فشل في تحميل بيانات المكاتب"))
+                    : Row(
                   children: [
                     Expanded(
                       child: _buildStatCard(
                         Icons.directions_car,
                         "Number of request to add an office",
-                        30,
-                        3, // نسبة ثابتة مثالًا
+                        officeData.requestsLast30,
+                        officeData.requestsChange.toDouble(),
                       ),
                     ),
                     const SizedBox(width: 30),
@@ -83,8 +94,8 @@ class Dashboard2Page extends StatelessWidget {
                       child: _buildStatCard(
                         Icons.verified,
                         "Number of accepted Offices",
-                        22,
-                        0,
+                        officeData.acceptedLast30,
+                        officeData.acceptedChange.toDouble(),
                       ),
                     ),
                     const SizedBox(width: 30),
@@ -92,8 +103,8 @@ class Dashboard2Page extends StatelessWidget {
                       child: _buildStatCard(
                         Icons.local_activity,
                         "Number of currently Active Offices",
-                        18,
-                        -2,
+                        officeData.activeTotal,
+                        officeData.activeChange.toDouble(),
                       ),
                     ),
                   ],
@@ -101,9 +112,9 @@ class Dashboard2Page extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 
   Widget _buildSectionTitle(String title, {bool isBold = true}) {
@@ -120,10 +131,10 @@ class Dashboard2Page extends StatelessWidget {
       IconData icon,
       String label,
       int count,
-      double percent, // القيمة جاهزة من الـ API
+      double percent,
       ) {
     final bool isPositive = percent >= 0;
-    final String percentChange = "${percent.toStringAsFixed(1)}%";
+    final String percentChange = "${percent.toStringAsFixed(0)}%";
 
     return Container(
       padding: const EdgeInsets.all(16),

@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../controller/dashboard_controller/dashboard1_controller.dart';
+import '../../model/dashboard1_model.dart';
 
 class Dashboard1Page extends StatelessWidget {
   final Dashboard1Controller controller = Get.put(Dashboard1Controller());
 
-  final List<String> months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
+  Dashboard1Page({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +17,25 @@ class Dashboard1Page extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final data = controller.dashboardData.value;
-
-        if (data == null) {
-          return const Center(child: Text("فشل في تحميل البيانات"));
+        if (controller.errorMessage.isNotEmpty) {
+          return Center(
+            child: Text(
+              controller.errorMessage.value,
+              style: const TextStyle(color: Colors.red, fontSize: 16),
+            ),
+          );
         }
+
+        final DashboardData? data = controller.dashboardData.value;
+        if (data == null) {
+          return const Center(child: Text("❌ لا توجد بيانات للعرض"));
+        }
+
+        // ترتيب المفاتيح وتحويلها لقائمة القيم
+        List<String> sortedKeys = data.bookingsByMonth.keys.toList()..sort();
+        List<double> bookingsList = sortedKeys
+            .map((key) => data.bookingsByMonth[key]!.toDouble())
+            .toList();
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
@@ -35,36 +47,39 @@ class Dashboard1Page extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
+
+              // بطاقة المستخدم والإيرادات
               Row(
                 children: [
                   _statCard(
                     icon: Icons.people,
                     count: data.userCount,
-                    p: 'Number of people',
-                    percentage: data.bookingsChangePct,
+                    label: 'Number of people',
+                    percentage: data.bookingsChangePct.toDouble(),
                   ),
                   const SizedBox(width: 16),
                   _statCard(
                     icon: Icons.money,
                     count: data.currentRevenue,
-                    p: 'Monthly revenues',
-                    percentage: data.revenueChangePct,
+                    label: 'Monthly revenues',
+                    percentage: data.revenueChangePct.toDouble(),
                   ),
                 ],
               ),
+
               const SizedBox(height: 24),
+
+              // عنوان مخطط الحجوزات
               const Text(
                 "Number of bookings per month",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
+
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 2,
-                    child: _barChart(data.bookingsByMonth),
-                  ),
+                  Expanded(flex: 2, child: _barChart(bookingsList, sortedKeys)),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -72,14 +87,15 @@ class Dashboard1Page extends StatelessWidget {
                         _infoCard(
                           title: "Average monthly bookings",
                           value:
-                          "${data.averageMonthlyBookings.toInt()} reservation per month",
+                          "${data.averageMonthlyBookings} reservation per month",
                         ),
                         const SizedBox(height: 16),
+
                         _infoCard(
-                          title:
-                          "The highest month in terms of the number of booking",
-                          value:
-                          "${data.topMonth ?? 'N/A'} ${data.topMonthBookings} reservation",
+                          title: "The highest month in terms of bookings",
+                          value: data.topMonth != null && data.topMonth!.isNotEmpty
+                              ? "${data.topMonth} ${data.topMonthBookings} reservation"
+                              : "${data.topMonthBookings} reservation",
                         ),
                       ],
                     ),
@@ -97,10 +113,9 @@ class Dashboard1Page extends StatelessWidget {
     required IconData icon,
     required int count,
     required double percentage,
-    required String p,
+    required String label,
   }) {
-    final bool isPositive = percentage > 0;
-
+    final bool isPositive = percentage >= 0;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -116,19 +131,15 @@ class Dashboard1Page extends StatelessWidget {
               children: [
                 Icon(icon, size: 32, color: Colors.blue),
                 const SizedBox(width: 12),
-                Text(
-                  p,
-                  style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              "$count",
-              style:
-              const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text("$count",
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -136,17 +147,12 @@ class Dashboard1Page extends StatelessWidget {
                 const Spacer(),
                 Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: isPositive ? Colors.green : Colors.red,
-                  ),
+                      borderRadius: BorderRadius.circular(10),
+                      color: isPositive ? Colors.green : Colors.red),
                   padding: const EdgeInsets.all(4.0),
-                  child: Text(
-                    "${percentage.abs().toStringAsFixed(1)}%",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  child: Text("${percentage.abs().toStringAsFixed(1)}%",
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w500)),
                 ),
                 const SizedBox(width: 4),
                 Icon(
@@ -167,31 +173,28 @@ class Dashboard1Page extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.indigo.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
+          color: Colors.indigo.shade50, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              style:
+              const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade800),
-          )
+          Text(value,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade800)),
         ],
       ),
     );
   }
 
-  Widget _barChart(List<double> bookings) {
+  Widget _barChart(List<double> bookings, List<String> labels) {
     return Container(
       padding: const EdgeInsets.all(16),
-      height: 300,
+      height: 320,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -200,16 +203,26 @@ class Dashboard1Page extends StatelessWidget {
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
-          maxY: 160,
+          maxY: bookings.isNotEmpty
+              ? bookings.reduce((a, b) => a > b ? a : b) + 5
+              : 10,
           barTouchData: BarTouchData(enabled: true),
           titlesData: FlTitlesData(
             bottomTitles: AxisTitles(
+              axisNameWidget: const Text(
+                "Months",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              axisNameSize: 30,
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, _) {
-                  if (value.toInt() >= 0 && value.toInt() < months.length) {
-                    return Text(months[value.toInt()],
-                        style: const TextStyle(fontSize: 10));
+                  int index = value.toInt();
+                  if (index >= 0 && index < labels.length) {
+                    return Text(
+                      labels[index].split('-')[1], // الشهر فقط
+                      style: const TextStyle(fontSize: 12),
+                    );
                   }
                   return const Text('');
                 },
@@ -217,9 +230,14 @@ class Dashboard1Page extends StatelessWidget {
               ),
             ),
             leftTitles: AxisTitles(
+              axisNameWidget: const Text(
+                "Number of Bookings",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              axisNameSize: 30,
               sideTitles: SideTitles(
                 showTitles: true,
-                interval: 20,
+                interval: 1,
                 getTitlesWidget: (value, _) => Text(
                   value.toInt().toString(),
                   style: const TextStyle(fontSize: 12),
@@ -235,24 +253,19 @@ class Dashboard1Page extends StatelessWidget {
           borderData: FlBorderData(show: false),
           barGroups: List.generate(
             bookings.length,
-                (index) => _makeGroupData(index, bookings[index]),
+                (index) => BarChartGroupData(
+              x: index,
+              barRods: [
+                BarChartRodData(
+                  toY: bookings[index],
+                  color: Colors.blue,
+                  width: 16,
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  BarChartGroupData _makeGroupData(int x, double y) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: y,
-          color: Colors.blue,
-          width: 16,
-          borderRadius: BorderRadius.zero,
-        ),
-      ],
     );
   }
 }

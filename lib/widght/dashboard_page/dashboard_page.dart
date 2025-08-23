@@ -25,7 +25,7 @@ class DashboardPage extends StatelessWidget {
     return Scaffold(
       body: Row(
         children: [
-          buildSidebar(),
+          buildSidebar(context),
           Expanded(
             child: Column(
               children: [
@@ -60,7 +60,7 @@ class DashboardPage extends StatelessWidget {
                             Get.to(() => PaymentsPage());
                           }),
                           IconButton(icon: const Icon(Icons.notifications_none_outlined), onPressed: () {
-                            Get.to(() => NotificationPage());
+                            Get.to(() => const NotificationPage());
                           }),
                           const SizedBox(width: 20),
                           const Text("Ahmad Omar\nAdmin", textAlign: TextAlign.right),
@@ -91,9 +91,10 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget buildSidebar() {
+  /// ✅ عدلت هنا العرض إلى 300
+  Widget buildSidebar(BuildContext context) {
     return Container(
-      width: 250,
+      width: MediaQuery.of(context).size.width * 0.25,
       color: const Color(0xFFEBECF0),
       child: Column(
         children: [
@@ -139,7 +140,7 @@ class DashboardPage extends StatelessWidget {
           homeController.clearSelection(); // يلغي اختيار القاعة أو الأونر عند تغيير الصفحة
         },
         child: Container(
-          width: 220,
+          width: 260,
           color: isSelected ? const Color(0xFF1976D2) : Colors.transparent,
           child: ListTile(
             leading: Icon(icon, color: isSelected ? Colors.white : Colors.black),
