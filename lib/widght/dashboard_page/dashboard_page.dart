@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/home_controller/home_controller.dart';
 import '../../controller/side_bar_controller/side_bar_controller.dart';
+import '../../controller/user_controller/get_details_user_controller.dart';
+import '../../main.dart';
 import '../details_lounge/details_launge.dart';
 import '../notification_page/notification_page.dart';
 import '../payment/payment_page.dart';
@@ -20,6 +22,12 @@ class DashboardPage extends StatelessWidget {
   final SidebarController sidebarController = Get.put(SidebarController());
   final HomeController homeController = Get.put(HomeController());
 
+  final User7Controller user7controller = Get.put(User7Controller());
+
+
+  DashboardPage({super.key}) {
+    user7controller.fetchUserDetails(1);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,7 +46,7 @@ class DashboardPage extends StatelessWidget {
                     children: [
                       // حقل البحث
                       Container(
-                        width: 400,
+                        width: 700,
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         child: TextField(
                           decoration: InputDecoration(
@@ -57,13 +65,42 @@ class DashboardPage extends StatelessWidget {
                         children: [
                           IconButton(icon: const Icon(Icons.language_outlined), onPressed: () {}),
                           IconButton(icon: const Icon(Icons.dark_mode_outlined), onPressed: () {
-                            Get.to(() => PaymentsPage());
+                            // Get.to(() => PaymentsPage());
                           }),
                           IconButton(icon: const Icon(Icons.notifications_none_outlined), onPressed: () {
                             Get.to(() => const NotificationPage());
                           }),
                           const SizedBox(width: 20),
-                          const Text("Ahmad Omar\nAdmin", textAlign: TextAlign.right),
+                          Obx(() {
+                            if (user7controller.isLoading.value) {
+                              return const SizedBox(
+                                width: 80,
+                                child: LinearProgressIndicator(minHeight: 2),
+                              );
+                            }
+
+                            final user = user7controller.user.value;
+
+                            return Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: Colors.grey[300],
+                                  backgroundImage: (user?.photo != null && user!.photo!.isNotEmpty)
+                                      ? NetworkImage("${baseUrl1}/${user.photo}") // 🔹 رابط الصورة من API
+                                      : null,
+                                  child: (user?.photo == null || user!.photo!.isEmpty)
+                                      ? const Icon(Icons.person, color: Colors.white) // 🔹 fallback icon
+                                      : null,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  user?.name ?? "Admin",
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            );
+                          }),
                           const SizedBox(width: 20),
                         ],
                       ),
@@ -91,7 +128,6 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  /// ✅ عدلت هنا العرض إلى 300
   Widget buildSidebar(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.25,
@@ -122,6 +158,7 @@ class DashboardPage extends StatelessWidget {
                   _buildSidebarTile(6, Icons.people_outline, "Application users"),
                   _buildSidebarTile(7, Icons.people_alt_outlined, "Subscription setting"),
                   _buildSidebarTile(8, Icons.block_outlined, "Blocked User"),
+                  _buildSidebarTile(9, Icons.payment_outlined, "Payments List"),
                 ],
               ),
             ),
@@ -137,10 +174,10 @@ class DashboardPage extends StatelessWidget {
       return InkWell(
         onTap: () {
           sidebarController.selectedIndex.value = index;
-          homeController.clearSelection(); // يلغي اختيار القاعة أو الأونر عند تغيير الصفحة
+          homeController.clearSelection();
         },
         child: Container(
-          width: 260,
+          width: 300,
           color: isSelected ? const Color(0xFF1976D2) : Colors.transparent,
           child: ListTile(
             leading: Icon(icon, color: isSelected ? Colors.white : Colors.black),
@@ -174,6 +211,8 @@ class DashboardPage extends StatelessWidget {
         return SubscriptionSettingPage();
       case 8:
         return SettingsPage();
+      case 9:
+        return PaymentsPage();
       default:
         return Dashboard1Page();
     }

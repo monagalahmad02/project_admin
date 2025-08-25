@@ -33,7 +33,7 @@ class Dashboard2Page extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle('Welcome Ahmad!'),
+                _buildSectionTitle('Welcome Admin!'),
                 const SizedBox(height: 35),
 
                 // 🔹 Lounges

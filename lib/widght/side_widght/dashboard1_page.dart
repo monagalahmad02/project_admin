@@ -43,12 +43,10 @@ class Dashboard1Page extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Welcome Ahmad!",
+                "Welcome Admin!",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
-
-              // بطاقة المستخدم والإيرادات
               Row(
                 children: [
                   _statCard(

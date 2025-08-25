@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:project3admin/main.dart';
 import 'dart:convert';
 import '../../model/payment_model.dart';
 
@@ -9,7 +10,7 @@ class PaymentController extends GetxController {
   var payments = <PaymentIntent>[].obs;
 
   final box = GetStorage();
-  final String apiUrl = 'http://127.0.0.1:8000/api/stripe/getPayments';
+  final String apiUrl = '$baseUrl/stripe/getPayments';
 
   @override
   void onInit() {

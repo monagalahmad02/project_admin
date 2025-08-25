@@ -20,11 +20,9 @@ class UsersPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Hall Management",
+            const Text("Application User",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text('You have 200 Halls',
-                style: TextStyle(fontSize: 16, color: Colors.grey)),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),

@@ -9,7 +9,7 @@ class PaymentsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('قائمة المدفوعات'),
+        title: const Text('Payments List'),
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -28,18 +28,17 @@ class PaymentsPage extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               elevation: 4,
               child: ListTile(
-                title: Text('ID: ${payment.id}'),
+                title: Text('Number payment: ${payment.id}'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('المبلغ: \$${(payment.amount / 100).toStringAsFixed(2)}'),
-                    Text('العملة: ${payment.currency.toUpperCase()}'),
-                    Text('الحالة: ${payment.status}'),
+                    Text('Amount: \$${(payment.amount / 100).toStringAsFixed(2)}'),
+                    Text('Currency: ${payment.currency.toUpperCase()}'),
+                    Text('Status: ${payment.status}'),
                     if (payment.metadata != null && payment.metadata!['type'] != null)
-                      Text('النوع: ${payment.metadata!['type']}'),
+                      Text('Type: ${payment.metadata!['type']}'),
                   ],
                 ),
-                trailing: Icon(Icons.payment, color: Colors.blue),
               ),
             );
           },
