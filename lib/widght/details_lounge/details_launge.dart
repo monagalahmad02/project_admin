@@ -41,7 +41,6 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
     }
     complaintsController = Get.put(ComplaintsController(widget.hallId));
     complaintsController.fetchComplaints();
-
   }
 
   @override
@@ -58,11 +57,11 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
       }
 
       final imageUrl = (hall.hallImage != null &&
-              hall.hallImage != 'null' &&
-              !hall.hallImage!.contains('/null'))
+          hall.hallImage != 'null' &&
+          !hall.hallImage!.contains('/null'))
           ? hall.hallImage!.startsWith('http')
-              ? hall.hallImage!
-              : '$baseUrl1/${hall.hallImage}'
+          ? hall.hallImage!
+          : '$baseUrl1/${hall.hallImage}'
           : null;
 
       return SingleChildScrollView(
@@ -70,6 +69,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // صورة القاعة واسمها والتقييم وصورة المالك
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -85,20 +85,20 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                   borderRadius: BorderRadius.circular(12),
                   child: imageUrl != null
                       ? Image.network(
-                          imageUrl,
-                          height: MediaQuery.of(context).size.height * 0.4,
-                          width: MediaQuery.of(context).size.height * 0.8,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Text("❌ خطأ في تحميل الصورة");
-                          },
-                        )
+                    imageUrl,
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    width: MediaQuery.of(context).size.height * 0.8,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Text("❌ خطأ في تحميل الصورة");
+                    },
+                  )
                       : Image.asset(
-                          'assets/image/hall4.png',
-                          height: MediaQuery.of(context).size.height * 0.4,
-                          width: MediaQuery.of(context).size.height * 0.8,
-                          fit: BoxFit.cover,
-                        ),
+                    'assets/image/hall4.png',
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    width: MediaQuery.of(context).size.height * 0.8,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Column(
@@ -114,8 +114,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                     const SizedBox(height: 12),
                     Obx(() {
                       final avg =
-                          feedbackController.feedback.value?.averageRating ??
-                              0.0;
+                          feedbackController.feedback.value?.averageRating ?? 0.0;
                       return Row(
                         mainAxisSize: MainAxisSize.min,
                         children: List.generate(5, (index) {
@@ -135,14 +134,16 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                 GestureDetector(
                   onTap: () {
                     if (hall.owner?.id != null) {
-                      Get.find<HallsController>().selectedOwnerId.value = hall.owner!.id;
+                      Get.find<HallsController>().selectedOwnerId.value =
+                          hall.owner!.id;
                     } else {
                       Get.snackbar('خطأ', 'معرّف المالك غير موجود');
                     }
                   },
                   child: CircleAvatar(
                     radius: 30,
-                    backgroundImage: (hall.owner?.photo != null && hall.owner!.photo!.isNotEmpty)
+                    backgroundImage: (hall.owner?.photo != null &&
+                        hall.owner!.photo!.isNotEmpty)
                         ? NetworkImage('$baseUrl1/${hall.owner!.photo!}')
                         : const AssetImage('assets/image/hall4.png') as ImageProvider,
                   ),
@@ -151,6 +152,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
             ),
             const SizedBox(height: 16),
 
+            // جدول بيانات القاعة
             Table(
               border: const TableBorder(
                 top: BorderSide(color: Colors.black),
@@ -195,7 +197,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                         : (hall.type ?? 'غير معروف'),
                   ),
                   _buildValueCell("${hall.capacity} person"),
-                  _buildValueCell(hall.contact ?? 'غير متوفر'),
+                  _buildValueCellList(hall.contact),
                   _buildValueCell(hall.location ?? 'غير متوفر'),
                   _buildValueCell(hall.status ?? "Subscribed"),
                 ]),
@@ -203,6 +205,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
             ),
             const SizedBox(height: 35),
 
+            // الصور
             Container(
               color: Colors.grey.shade200,
               width: double.infinity,
@@ -219,56 +222,55 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
               height: 100,
               child: (hall.images == null || hall.images!.isEmpty)
                   ? Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: const Text(
-                          '📷 لا توجد صور متوفرة لهذه القاعة',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      ),
-                    )
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: const Text(
+                    '📷 لا توجد صور متوفرة لهذه القاعة',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
+              )
                   : ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: hall.images!.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final imagePath = hall.images![index].imagePath;
-                        final imageFullUrl = '$baseUrl1/$imagePath';
+                scrollDirection: Axis.horizontal,
+                itemCount: hall.images!.length,
+                separatorBuilder: (context, index) =>
+                const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final imagePath = hall.images![index];
+                  final imageFullUrl = '$baseUrl1/$imagePath';
 
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            imageFullUrl,
-                            width: 150,
-                            height: 100,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                width: 150,
-                                height: 100,
-                                color: Colors.grey.shade200,
-                                alignment: Alignment.center,
-                                child: const Text("⚠️ تعذر تحميل الصورة"),
-                              );
-                            },
-                          ),
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      imageFullUrl,
+                      width: 150,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 150,
+                          height: 100,
+                          color: Colors.grey.shade200,
+                          alignment: Alignment.center,
+                          child: const Text("⚠️ تعذر تحميل الصورة"),
                         );
                       },
                     ),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 35),
 
+            // قسم الشكاوى
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // الشكاوى
                 Container(
                   width: MediaQuery.of(context).size.width * 0.35,
                   decoration: BoxDecoration(
@@ -294,7 +296,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                         if (complaintsController.complaints.isEmpty) {
                           return const Padding(
                             padding: EdgeInsets.all(8),
-                            child: Text("لا توجد شكاوى حالياً."),
+                            child: Text("No complaint."),
                           );
                         }
 
@@ -305,10 +307,12 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: complaintsController.complaints.length,
                             itemBuilder: (context, index) {
-                              final complaint = complaintsController.complaints[index];
+                              final complaint =
+                              complaintsController.complaints[index];
                               final user = complaint.user;
 
-                              final userPhoto = (user?.photo != null && user!.photo!.isNotEmpty)
+                              final userPhoto = (user?.photo != null &&
+                                  user!.photo!.isNotEmpty)
                                   ? '$baseUrl1/${user.photo}'
                                   : null;
 
@@ -317,8 +321,10 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                                 decoration: const BoxDecoration(
                                   color: Colors.white,
                                   border: Border(
-                                    top: BorderSide(color: Colors.black, width: 0.5),
-                                    bottom: BorderSide(color: Colors.black, width: 0.25),
+                                    top: BorderSide(
+                                        color: Colors.black, width: 0.5),
+                                    bottom: BorderSide(
+                                        color: Colors.black, width: 0.25),
                                   ),
                                 ),
                                 child: Row(
@@ -328,16 +334,20 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                                       radius: 24,
                                       backgroundImage: userPhoto != null
                                           ? NetworkImage(userPhoto)
-                                          : const AssetImage('assets/image/hall4.png') as ImageProvider,
+                                          : const AssetImage(
+                                          'assets/image/hall4.png')
+                                      as ImageProvider,
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             user?.name ?? "مستخدم مجهول",
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
@@ -360,7 +370,7 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
 
                 const SizedBox(width: 20),
 
-                // قسم التعليقات (Feedback)
+                // قسم التعليقات
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -385,12 +395,11 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                                 child: CircularProgressIndicator());
                           }
 
-                          if (feedbackController
-                                  .feedback.value?.reviews?.isEmpty ??
+                          if (feedbackController.feedback.value?.reviews?.isEmpty ??
                               true) {
                             return const Padding(
                               padding: EdgeInsets.all(8),
-                              child: Text("لا توجد تعليقات حالياً."),
+                              child: Text("No commit."),
                             );
                           }
 
@@ -399,11 +408,13 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                             child: ListView.builder(
                               shrinkWrap: true,
                               physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: feedbackController.feedback.value!.reviews!.length,
+                              itemCount:
+                              feedbackController.feedback.value!.reviews!.length,
                               itemBuilder: (context, index) {
                                 final review = feedbackController.feedback.value!.reviews![index];
                                 final user = review.user;
-                                final userPhoto = (user?.photo != null && user!.photo!.isNotEmpty)
+                                final userPhoto = (user?.photo != null &&
+                                    user!.photo!.isNotEmpty)
                                     ? '$baseUrl1/${user.photo}'
                                     : null;
 
@@ -412,8 +423,10 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                                   decoration: const BoxDecoration(
                                     color: Colors.white,
                                     border: Border(
-                                      top: BorderSide(color: Colors.black, width: 0.5),
-                                      bottom: BorderSide(color: Colors.black ,width: 0.25),
+                                      top: BorderSide(
+                                          color: Colors.black, width: 0.5),
+                                      bottom: BorderSide(
+                                          color: Colors.black, width: 0.25),
                                     ),
                                   ),
                                   child: Row(
@@ -423,16 +436,20 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
                                         radius: 24,
                                         backgroundImage: userPhoto != null
                                             ? NetworkImage(userPhoto)
-                                            : const AssetImage('assets/image/hall4.png') as ImageProvider,
+                                            : const AssetImage(
+                                            'assets/image/hall4.png')
+                                        as ImageProvider,
                                       ),
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               user?.name ?? "مستخدم مجهول",
-                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
@@ -482,5 +499,13 @@ class _HallDetailsWidgetState extends State<HallDetailsWidget> {
         style: const TextStyle(fontWeight: FontWeight.normal),
       ),
     );
+  }
+
+  Widget _buildValueCellList(List<dynamic>? items) {
+    if (items == null || items.isEmpty) {
+      return _buildValueCell('غير متوفر');
+    }
+    String text = items.map((e) => e.toString()).join(', ');
+    return _buildValueCell(text);
   }
 }

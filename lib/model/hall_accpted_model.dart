@@ -1,130 +1,129 @@
 class HallsModel {
-  final int id;
-  final String hallImage;
-  final String name;
-  final int ownerId;
-  final String location;
-  final int capacity;
-  final String contact;
-  final String type;
-  final List<String> events;
-  final String? payMethods;
-  final String status;
-  final String rate;
-  final String createdAt;
-  final String updatedAt;
-  final dynamic reviewsAvgRating;
-  final List<ImageModel> images;
-  final List<VideoModel> video;
-  final bool isSubscribe; // جديد
+  final int? id;
+  final String? hallImage;
+  final String? name;
+  final int? ownerId;
+  final String? location;
+  final int? capacity;
+  final List<dynamic> contact;
+  final String? type;
+  final dynamic events; // String أو List
+  final List<dynamic> payMethods;
+  final String? status;
+  final double? rate;
+  final String? subscriptionExpiresAt;
+  final String? createdAt;
+  final String? updatedAt;
+  final double? reviewsAvgRating;
+  final List<dynamic> images;
+  final List<dynamic> video;
+  final List<dynamic> prices;
+  final List<dynamic> reviews;
+  final List<dynamic> eventImages;
+  final List<dynamic> eventVideos;
 
   HallsModel({
-    required this.id,
-    required this.hallImage,
-    required this.name,
-    required this.ownerId,
-    required this.location,
-    required this.capacity,
-    required this.contact,
-    required this.type,
-    required this.events,
-    required this.payMethods,
-    required this.status,
-    required this.rate,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.reviewsAvgRating,
-    required this.images,
-    required this.video,
-    required this.isSubscribe, // جديد
-  });
+    this.id,
+    this.hallImage,
+    this.name,
+    this.ownerId,
+    this.location,
+    this.capacity,
+    List<dynamic>? contact,
+    this.type,
+    this.events,
+    List<dynamic>? payMethods,
+    this.status,
+    this.rate,
+    this.subscriptionExpiresAt,
+    this.createdAt,
+    this.updatedAt,
+    this.reviewsAvgRating,
+    List<dynamic>? images,
+    List<dynamic>? video,
+    List<dynamic>? prices,
+    List<dynamic>? reviews,
+    List<dynamic>? eventImages,
+    List<dynamic>? eventVideos,
+  })  : contact = contact ?? [],
+        payMethods = payMethods ?? [],
+        images = images ?? [],
+        video = video ?? [],
+        prices = prices ?? [],
+        reviews = reviews ?? [],
+        eventImages = eventImages ?? [],
+        eventVideos = eventVideos ?? [];
 
   factory HallsModel.fromJson(Map<String, dynamic> json) {
+    dynamic parsedEvents;
+    if (json['events'] is List) {
+      parsedEvents = List<String>.from(json['events']);
+    } else {
+      parsedEvents = json['events']?.toString();
+    }
+
     return HallsModel(
-      id: json['id'] ?? 0,
-      hallImage: json['hall_image'] ?? '',
-      name: json['name'] ?? '',
-      ownerId: json['owner_id'] ?? 0,
-      location: json['location'] ?? '',
-      capacity: json['capacity'] ?? 0,
-      contact: json['contact'] ?? '',
-      type: json['type'] ?? '',
-      events: json['events'] is List
-          ? List<String>.from(json['events'])
-          : (json['events'] != null
-          ? (json['events'] as String).split(',')
-          : []),
-      payMethods: json['pay_methods'],
-      status: json['status'] ?? '',
-      rate: json['rate'] ?? '',
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
-      reviewsAvgRating: json['reviews_avg_rating'],
-      images: (json['images'] as List?)
-          ?.map((img) => ImageModel.fromJson(img))
-          .toList() ??
-          [],
-      video: (json['video'] as List?)
-          ?.map((vid) => VideoModel.fromJson(vid))
-          .toList() ??
-          [],
-      isSubscribe: json['is_subscribe'] == true,
+      id: json['id'],
+      hallImage: json['hall_image'],
+      name: json['name'],
+      ownerId: json['owner_id'],
+      location: json['location'],
+      capacity: json['capacity'],
+      contact: json['contact'] != null
+          ? List<dynamic>.from(json['contact'])
+          : [],
+      type: json['type'],
+      events: parsedEvents,
+      payMethods: json['pay_methods'] != null
+          ? List<dynamic>.from(json['pay_methods'])
+          : [],
+      status: json['status'],
+      rate: json['rate'] != null
+          ? double.tryParse(json['rate'].toString())
+          : null,
+      subscriptionExpiresAt: json['subscription_expires_at'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      reviewsAvgRating: json['reviews_avg_rating'] != null
+          ? double.tryParse(json['reviews_avg_rating'].toString())
+          : null,
+      images: json['images'] != null ? List<dynamic>.from(json['images']) : [],
+      video: json['video'] != null ? List<dynamic>.from(json['video']) : [],
+      prices: json['prices'] != null ? List<dynamic>.from(json['prices']) : [],
+      reviews: json['reviews'] != null ? List<dynamic>.from(json['reviews']) : [],
+      eventImages: json['event_images'] != null
+          ? List<dynamic>.from(json['event_images'])
+          : [],
+      eventVideos: json['event_videos'] != null
+          ? List<dynamic>.from(json['event_videos'])
+          : [],
     );
   }
-}
 
-
-class ImageModel {
-  final int id;
-  final int hallId;
-  final String imagePath;
-  final String createdAt;
-  final String updatedAt;
-
-  ImageModel({
-    required this.id,
-    required this.hallId,
-    required this.imagePath,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory ImageModel.fromJson(Map<String, dynamic> json) {
-    return ImageModel(
-      id: json['id'] ?? 0,
-      hallId: json['hall_id'] ?? 0,
-      imagePath: json['image_path'] ?? '',
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
-    );
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'hall_image': hallImage,
+      'name': name,
+      'owner_id': ownerId,
+      'location': location,
+      'capacity': capacity,
+      'contact': contact,
+      'type': type,
+      'events': events,
+      'pay_methods': payMethods,
+      'status': status,
+      'rate': rate,
+      'subscription_expires_at': subscriptionExpiresAt,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+      'reviews_avg_rating': reviewsAvgRating,
+      'images': images,
+      'video': video,
+      'prices': prices,
+      'reviews': reviews,
+      'event_images': eventImages,
+      'event_videos': eventVideos,
+    };
   }
 }
-
-
-
-class VideoModel {
-  final int id;
-  final int hallId;
-  final String videoPath;
-  final String createdAt;
-  final String updatedAt;
-
-  VideoModel({
-    required this.id,
-    required this.hallId,
-    required this.videoPath,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory VideoModel.fromJson(Map<String, dynamic> json) {
-    return VideoModel(
-      id: json['id'] ?? 0,
-      hallId: json['hall_id'] ?? 0,
-      videoPath: json['video_path'] ?? '',
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
-    );
-  }
-}
-

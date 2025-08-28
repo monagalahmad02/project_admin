@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "955474204588",
+    "project_id": "grad-pro-52671",
+    "storage_bucket": "grad-pro-52671.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:955474204588:android:adbb12aa38399db90ecc09",
+        "android_client_info": {
+          "package_name": "com.example.hall_gradition"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqEcrrfcGZx4H7U4y6aX6J-UZ0Vc3Gssg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

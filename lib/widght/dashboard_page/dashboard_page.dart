@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/home_controller/home_controller.dart';
+import '../../controller/notification_controller/conut_notification_controller.dart';
 import '../../controller/side_bar_controller/side_bar_controller.dart';
 import '../../controller/user_controller/get_details_user_controller.dart';
 import '../../main.dart';
 import '../details_lounge/details_launge.dart';
 import '../notification_page/notification_page.dart';
 import '../payment/payment_page.dart';
-import '../profile_owner_page/profile_owner_page.dart'; // ✅ مهم
+import '../profile_owner_page/profile_owner_page.dart';
 import '../side_widght/add_car_request_page.dart';
 import '../side_widght/add_hall_request_page.dart';
 import '../side_widght/dashboard1_page.dart';
@@ -21,13 +22,15 @@ import '../side_widght/users_page.dart';
 class DashboardPage extends StatelessWidget {
   final SidebarController sidebarController = Get.put(SidebarController());
   final HomeController homeController = Get.put(HomeController());
-
   final User7Controller user7controller = Get.put(User7Controller());
-
+  final CountNotificationController countController =
+  Get.put(CountNotificationController()); // 🔹 ربط كونترولر العدّاد
 
   DashboardPage({super.key}) {
     user7controller.fetchUserDetails(1);
+    countController.fetchCount();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +40,6 @@ class DashboardPage extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                // التاب العلوي - ثابت
                 Container(
                   height: 70,
                   color: Colors.white,
@@ -61,16 +63,63 @@ class DashboardPage extends StatelessWidget {
                           ),
                         ),
                       ),
+
                       Row(
                         children: [
-                          IconButton(icon: const Icon(Icons.language_outlined), onPressed: () {}),
-                          IconButton(icon: const Icon(Icons.dark_mode_outlined), onPressed: () {
-                            // Get.to(() => PaymentsPage());
+                          IconButton(
+                            icon: const Icon(Icons.language_outlined),
+                            onPressed: () {},
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.dark_mode_outlined),
+                            onPressed: () {},
+                          ),
+
+                          Obx(() {
+                            final count = countController.count.value;
+                            return Stack(
+                              clipBehavior: Clip.none, // يخلي المسافة تظهر خارج حدود الستاك
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.notifications_none_outlined),
+                                  onPressed: () async {
+                                    await Get.to(() => const NotificationPage());
+                                    // بعد الرجوع من صفحة الإشعارات حدث العدّاد
+                                    countController.fetchCount();
+                                  },
+                                ),
+                                if (count > 0)
+                                  Positioned(
+                                    right: 4,  // 🔹 غيرتها من 8 → 4 (بتبعدها شوي عن الأيقونة)
+                                    top: -2,   // 🔹 سالبة عشان تطلع فوق الأيقونة مو ملزوقة
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 20,
+                                        minHeight: 20,
+                                      ),
+                                      child: Text(
+                                        '$count',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
                           }),
-                          IconButton(icon: const Icon(Icons.notifications_none_outlined), onPressed: () {
-                            Get.to(() => const NotificationPage());
-                          }),
+
                           const SizedBox(width: 20),
+
+                          // 🧑 صورة واسم المستخدم
                           Obx(() {
                             if (user7controller.isLoading.value) {
                               return const SizedBox(
@@ -86,11 +135,12 @@ class DashboardPage extends StatelessWidget {
                                 CircleAvatar(
                                   radius: 20,
                                   backgroundColor: Colors.grey[300],
-                                  backgroundImage: (user?.photo != null && user!.photo!.isNotEmpty)
-                                      ? NetworkImage("${baseUrl1}/${user.photo}") // 🔹 رابط الصورة من API
+                                  backgroundImage: (user?.photo != null &&
+                                      user!.photo!.isNotEmpty)
+                                      ? NetworkImage("${baseUrl1}/${user.photo}")
                                       : null,
                                   child: (user?.photo == null || user!.photo!.isEmpty)
-                                      ? const Icon(Icons.person, color: Colors.white) // 🔹 fallback icon
+                                      ? const Icon(Icons.person, color: Colors.white)
                                       : null,
                                 ),
                                 const SizedBox(width: 8),
@@ -108,15 +158,18 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
 
-                // هنا يتم عرض المحتوى المتغير حسب الحالة
+                // المحتوى المتغير
                 Expanded(
                   child: Obx(() {
                     if (homeController.selectedOwnerId.value != null) {
-                      return ProfileOwnerPage(userId: homeController.selectedOwnerId.value!);
+                      return ProfileOwnerPage(
+                          userId: homeController.selectedOwnerId.value!);
                     } else if (homeController.selectedHallId.value != null) {
-                      return HallDetailsWidget(hallId: homeController.selectedHallId.value!);
+                      return HallDetailsWidget(
+                          hallId: homeController.selectedHallId.value!);
                     } else {
-                      return _buildContentForIndex(sidebarController.selectedIndex.value);
+                      return _buildContentForIndex(
+                          sidebarController.selectedIndex.value);
                     }
                   }),
                 ),
@@ -138,10 +191,12 @@ class DashboardPage extends StatelessWidget {
             height: 100,
             color: const Color(0xFF1976D2),
             alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const Text(
-              "My Lounges",
-              style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
+            child:const Center(
+              child: Text(
+                "My Lounges",
+                style: TextStyle(
+                    fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
           const SizedBox(height: 20),
